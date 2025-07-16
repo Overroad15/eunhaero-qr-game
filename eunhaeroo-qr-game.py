@@ -21,14 +21,14 @@ def log_visit(ip, result):
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(log_file, "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow([now, ip, result])
+        writer.writerow([now, ip.strip(), result])
 
 def has_played(ip):
     if not os.path.exists(log_file):
         return False
     with open(log_file, "r", encoding='utf-8') as f:
         for row in csv.reader(f):
-            if ip == row[1]:
+            if len(row) >= 2 and row[1].strip() == ip.strip():
                 return True
     return False
 
