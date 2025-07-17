@@ -11,24 +11,30 @@ result_html = '''
 <html>
     <body style="text-align:center;">
         <h1>{{ message }}</h1>
-        <img src="{{ image_url }}" width="300"><br><br>
+        <img src="{{ image_url }}" width="600"><br><br>
         <p>접속 IP: {{ ip }}</p>
     </body>
 </html>
 '''
 
+def get_client_ip():
+    forwarded_for = request.headers.get('X-Forwarded-For', '')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.remote_addr.strip()
+
 def log_visit(ip, result):
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(log_file, "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow([now, ip.strip(), result])
+        writer.writerow([now, ip, result])
 
 def has_played(ip):
     if not os.path.exists(log_file):
         return False
     with open(log_file, "r", encoding='utf-8') as f:
         for row in csv.reader(f):
-            if len(row) >= 2 and row[1].strip() == ip.strip():
+            if len(row) >= 2 and row[1].strip() == ip:
                 return True
     return False
 
@@ -44,7 +50,7 @@ def get_winner_count():
 
 @app.route("/")
 def play():
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    ip = get_client_ip()
 
     if has_played(ip):
         return render_template_string(result_html,
