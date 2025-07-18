@@ -9,7 +9,7 @@ log_file = "logs.csv"
 max_winners = 10
 
 result_html = '''
-<html>git add .
+<html>
     <body style="text-align:center;">
         <h1>{{ message }}</h1>
         <img src="{{ image_url }}" width="600"><br><br>
