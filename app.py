@@ -12,7 +12,7 @@ result_html = '''
 <html>
     <body style="text-align:center;">
         <h1>{{ message }}</h1>
-        <img src="{{ image_url }}" width="300"><br><br>
+        <img src="{{ image_url }}" width="600"><br><br>
         <p>당신의 순번 ID: {{ sid }}</p>
     </body>
 </html>
