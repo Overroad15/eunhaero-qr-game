@@ -1,9 +1,10 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, session, make_response
 import os
 import csv
 from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = "은혜로보물찾기_비밀키_아무거나!"  # 세션 암호화를 위한 필수값
 log_file = "logs.csv"
 max_winners = 10
 
@@ -11,30 +12,24 @@ result_html = '''
 <html>
     <body style="text-align:center;">
         <h1>{{ message }}</h1>
-        <img src="{{ image_url }}" width="600"><br><br>
-        <p>접속 IP: {{ ip }}</p>
+        <img src="{{ image_url }}" width="300"><br><br>
+        <p>당신의 순번 ID: {{ sid }}</p>
     </body>
 </html>
 '''
 
-def get_client_ip():
-    forwarded_for = request.headers.get('X-Forwarded-For', '')
-    if forwarded_for:
-        return forwarded_for.split(',')[0].strip()
-    return request.remote_addr.strip()
-
-def log_visit(ip, result):
+def log_visit(session_id, result):
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(log_file, "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow([now, ip, result])
+        writer.writerow([now, session_id, result])
 
-def has_played(ip):
+def has_played(session_id):
     if not os.path.exists(log_file):
         return False
     with open(log_file, "r", encoding='utf-8') as f:
         for row in csv.reader(f):
-            if len(row) >= 2 and row[1].strip() == ip:
+            if len(row) >= 2 and row[1].strip() == session_id.strip():
                 return True
     return False
 
@@ -50,13 +45,17 @@ def get_winner_count():
 
 @app.route("/")
 def play():
-    ip = get_client_ip()
+    # 세션 ID 생성 또는 기존 값 불러오기
+    session_id = session.get("id")
+    if not session_id:
+        session_id = os.urandom(8).hex()
+        session["id"] = session_id
 
-    if has_played(ip):
+    if has_played(session_id):
         return render_template_string(result_html,
             message="⚠️ 이미 참여하셨습니다. 한 번만 도전할 수 있어요!",
             image_url="/static/lose.png",
-            ip=ip
+            sid=session_id
         )
 
     winner_count = get_winner_count()
@@ -64,18 +63,18 @@ def play():
     if winner_count < max_winners:
         result = "당첨"
         image = "/static/winner.png"
-        message = f"🎉 축하합니다! {winner_count + 1}번째 은혜로 보물 당첨자입니다! 🎉"
+        message = f"🎉 축하합니다! {winner_count + 1}번째 당첨자입니다! 🎉"
     else:
         result = "꽝"
         image = "/static/lose.png"
         message = "😢 아쉽지만 당첨자 10명이 모두 나왔습니다."
 
-    log_visit(ip, result)
+    log_visit(session_id, result)
 
     return render_template_string(result_html,
         message=message,
         image_url=image,
-        ip=ip
+        sid=session_id
     )
 
 if __name__ == "__main__":
