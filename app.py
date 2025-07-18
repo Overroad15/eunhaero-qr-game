@@ -153,7 +153,6 @@ def submit_phone():
         <p>예: 010-1234-5678 또는 01012345678</p>
         <form method="post" action="/submit_info">
             📱 전화번호: <input type="text" name="phone" required><br><br>
-            📧 이메일: <input type="email" name="email" required><br><br>
             <input type="hidden" name="sid" value="{{ sid }}">
             <input type="submit" value="다시 제출하기">
         </form>
