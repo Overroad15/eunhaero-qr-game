@@ -8,6 +8,19 @@ app.secret_key = "은혜로보물찾기_비밀키_아무거나!"  # 세션 암�
 log_file = "logs.csv"
 max_winners = 10
 
+@app.route("/reset", methods=["GET"])
+def reset_logs():
+    # 간단한 비밀번호 검증
+    secret = request.args.get("pw")
+    if secret != "mysecretpw":  # 원하는 비밀번호로 바꾸세요
+        return "🚫 접근 권한이 없습니다.", 403
+
+    if os.path.exists(log_file):
+        os.remove(log_file)
+        return "✅ logs.csv 삭제 완료"
+    else:
+        return "ℹ️ logs.csv 파일이 존재하지 않습니다."
+
 result_html = '''
 <html>
     <body style="text-align:center;">
