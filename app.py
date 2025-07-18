@@ -25,12 +25,13 @@ def log_visit(session_id, result):
         writer.writerow([now, session_id, result])
 
 def has_played(session_id):
-    if not os.path.exists(log_file):
+    try:
+        with open(log_file, "r", encoding='utf-8') as f:
+            for row in csv.reader(f):
+                if len(row) >= 2 and row[1].strip() == session_id.strip():
+                    return True
+    except FileNotFoundError:
         return False
-    with open(log_file, "r", encoding='utf-8') as f:
-        for row in csv.reader(f):
-            if len(row) >= 2 and row[1].strip() == session_id.strip():
-                return True
     return False
 
 def get_winner_count():
@@ -76,9 +77,6 @@ def play():
         image_url=image,
         sid=session_id
     )
-    
-if os.path.exists(log_file):
-    os.remove(log_file)
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
