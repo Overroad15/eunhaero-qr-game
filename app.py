@@ -76,6 +76,9 @@ def play():
         image_url=image,
         sid=session_id
     )
-
+    
+if os.path.exists(log_file):
+    os.remove(log_file)
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
