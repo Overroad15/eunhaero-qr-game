@@ -146,8 +146,15 @@ def submit_phone():
     phone = request.form.get("phone")
 
     if not is_valid_phone(phone):
-        return f"<h3>⚠️ 잘못된 전화번호 형식입니다.<br>📱 예시: 010-1234-5678</h3>"
-
+        return '''
+    <html>
+        <body style="text-align:center;">
+            <h2>⚠️ 잘못된 전화번호 형식입니다</h2>
+            <p>📱 예시: 010-1234-5678 또는 01012345678</p>
+            <a href="/">🏠 홈으로 돌아가기</a>
+        </body>
+    </html>
+    '''
     updated_rows = []
     if os.path.exists(log_file):
         with open(log_file, "r", encoding='utf-8') as f:
