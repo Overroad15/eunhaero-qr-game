@@ -140,39 +140,41 @@ def play():
 
 # ----------- 전화번호 등록 -----------
 
-@app.route("/submit_phone", methods=["POST"])
-def submit_phone():
-    sid = request.form.get("sid")
-    phone = request.form.get("phone")
+@app.route("/submit_info", methods=["POST"])
+def submit_info():
+    sid   = request.form.get('sid') or session.get('sid')
+    phone = request.form.get('phone')
 
-    if not is_valid_phone(phone):
+    # 전화번호 형식 검사 (010-XXXX-XXXX 또는 010XXXXXXXX)
+    phone_regex = re.compile(r'^01[016789]-?\d{3,4}-?\d{4}$')
+    if not phone_regex.match(phone):
+        # 전화번호가 잘못된 경우 재입력 폼 출력
         return render_template_string('''
-    <html>
-    <body style="text-align:center;">
-        <h2>⚠️ 잘못된 전화번호 형식입니다</h2>
-        <p>예: 010-1234-5678 또는 01012345678</p>
-        <form method="post" action="/submit_info">
-            📱 전화번호: <input type="text" name="phone" required><br><br>
-            <input type="hidden" name="sid" value="{{ sid }}">
-            <input type="submit" value="다시 제출하기">
-        </form>
-    </body>
-    </html>
-''', sid=sid)
+            <html><body style="text-align:center;">
+                <h2>⚠️ 잘못된 전화번호 형식입니다</h2>
+                <p>예: 010-1234-5678 또는 01012345678</p><br>
+                <form method="post" action="/submit_info">
+                    📱 전화번호: <input type="text" name="phone" required><br><br>
+                    <input type="hidden" name="sid" value="{{ sid }}">
+                    <input type="submit" value="다시 제출하기">
+                </form>
+                <br><a href="/">🏠 홈으로</a>
+            </body></html>
+        ''', sid=sid)
+
+    # 정상 입력: 로그 저장 (단, 중복 저장 방지)
+    if session.get('pending_winner'):
+        log_visit(sid, '당첨', phone, '')
+        session.pop('pending_winner')
+
+    return render_template_string('''
+        <html><body style="text-align:center;">
+            <h2>✅ 전화번호가 등록되었습니다!</h2>
+            <p>📱 {{ phone }}</p><br>
+            <a href="/">🏠 홈으로</a>
+        </body></html>
+    ''', phone=phone)
     
-    updated_rows = []
-    if os.path.exists(log_file):
-        with open(log_file, "r", encoding='utf-8') as f:
-            for row in csv.reader(f):
-                if len(row) >= 3 and row[1] == sid and row[2] == "당첨":
-                    if len(row) < 4:
-                        row.append(phone)
-                updated_rows.append(row)
-        with open(log_file, "w", newline='', encoding='utf-8') as f:
-            csv.writer(f).writerows(updated_rows)
-
-    return render_template_string(thanks_html, phone=phone)
-
 # ----------- 관리자 로그인 -----------
 
 @app.route("/admin", methods=["GET"])
