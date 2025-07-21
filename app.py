@@ -23,6 +23,7 @@ result_html = '''
         <form method="post" action="/submit_info">
             📱 전화번호: <input type="text" name="phone" required><br><br>
             <input type="hidden" name="sid" value="{{ sid }}">
+            <p>⚠️전화번호를 넣어야 당첨이 확정됩니다!</p>
             <input type="submit" value="전화번호 제출">
         </form>
         {% endif %}
